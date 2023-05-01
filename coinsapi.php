@@ -1,5 +1,4 @@
 <?php
-
 /*
   Plugin Name: Quiz App
   Plugin URI: https://google.com/
@@ -135,8 +134,8 @@ class quickBookingApihwe {
         }
         return;
     }
-//23aug 
-public function my_test_results_question() {
+    //23aug 
+    public function my_test_results_question() {
 
      global $wpdb;
      $creds = $output = [];
@@ -1300,50 +1299,86 @@ public function update_quiz_price($quizID) {
        
     }
 
-
     public function login() {
-         global $wpdb;
-         $params = filter_input_array(INPUT_POST, $_POST);
-         $params = $_REQUEST;
-         $user_login = $params['user_login'];
-         $user_password = $params['user_password'];
-         $credentials = [
-            'user_login' => $user_login,
-            'user_password' => $user_password,
-            'rememberme' => true,
-        ];
-        $signon = wp_signon($credentials, true); // true - use HTTP only cookie
-        $output = array();
-         if(! is_wp_error( $signon ))
-         {   
+        global $wpdb;
+        $params = $_REQUEST;
+        $user_login = $params['user_login'];
+        $user_password = $params['user_password'];
+        $credentials = [
+           'user_login' => $user_login,
+           'user_password' => $user_password,
+           'rememberme' => true,
+       ];
+       $signon = wp_signon($credentials, true); // true - use HTTP only cookie
+        if(! is_wp_error( $signon ))
+        {
+            $sql= "SELECT ID,user_login,user_email FROM ".$wpdb->prefix."users where user_login='$user_login' OR user_email='$user_login' limit 1";
+            $result = $wpdb->get_results($sql,ARRAY_A);
+            $user_id= $result[0]['ID'];
+            $output = array(
+               'status' => true, 'error_code' => '0',
+               'message' => 'Login Succesfull',
+               'data' => array(
+                   'user_id' =>$user_id,
+                   'user_login' => $user_login,
+                   'user_password' => $user_password
+               )
+           );
+           echo json_encode($output);
+           die();
+        } 
+        else 
+        {
+           $output = array('status' => false, 'error_code' => '1109',
+               'message' => "User name and password don't match."
+           ); 
+           echo json_encode($output);
+           die();
+        }
+       
+    }
+    // public function login() {
+    //      global $wpdb;
+    //      $params = filter_input_array(INPUT_POST, $_POST);
+    //      $params = $_REQUEST;
+    //      $user_login = $params['user_login'];
+    //      $user_password = $params['user_password'];
+    //      $credentials = [
+    //         'user_login' => $user_login,
+    //         'user_password' => $user_password,
+    //         'rememberme' => true,
+    //     ];
+    //     $signon = wp_signon($credentials, true); // true - use HTTP only cookie
+    //      if(! is_wp_error( $signon ))
+    //      {
+    //          $sql= $wpdb->get_results("SELECT ID,user_login,user_email FROM ".$wpdb->prefix."users where user_login='$user_login' OR user_email='$user_login' limit 0,1",ARRAY_A);
+    //          $user_id= $sql[0]['ID'];
+    //          $output = array(
+    //             'status' => true, 'error_code' => '0',
+    //             'message' => 'Login Succesfull',
+    //             'data' => array(
+    //                 'user_id' =>$user_id,
+    //                 'user_login' => $user_login,
+    //                 'user_password' => $user_password
+    //             )
+    //         );
+          
+    //      } 
+    //      else 
+    //      {
+    //         $output = array('status' => false, 'error_code' => '1109',
+    //             'message' => "User name and password don't match."
+    //         ); 
+    //      }
+    //      echo json_encode($output);
+    //      header('Access-Control-Allow-Headers: access-control-allow-origin, access-control-allow-methods, access-control-allow-headers, X-Requested-With, Content-Type, viewerTZOffset, deviceid, mobile, session, uat, appversion, ip, language, browser');
+    //      header('Content-type: application/json');
+    //      header('Access-Control-Allow-Origin: *');
+    //      die();
          
-             $select = "SELECT ID,user_login,user_email FROM ".$wpdb->prefix."users where user_login='$user_login' || user_email='$user_login'";
-             $sql= $wpdb->get_results($select,ARRAY_A);
-             $user_id= $sql[0]['ID'];
-             $output = array(
-                'status' => true, 'error_code' => '0',
-                'message' => 'Login Succesfull',
-                'data' => array(
-                    'user_id' =>$user_id,
-                    'user_login' => $user_login,
-                    'user_password' => $user_password
-                )
-            );
-            
-         } 
-         else 
-         {
-            $output = array('status' => false, 'error_code' => '1109',
-                'message' => "User name and password don't match."
-            );
-            
-         }
-        echo json_encode($output);
-        header('Access-Control-Allow-Headers: access-control-allow-origin, access-control-allow-methods, access-control-allow-headers, X-Requested-With, Content-Type, viewerTZOffset, deviceid, mobile, session, uat, appversion, ip, language, browser');
-        header('Content-type: application/json');
-        header('Access-Control-Allow-Origin: *');
-        die();
-     }   
+
+         
+    //  }  
 
     public function category() {
         global $wpdb;
@@ -1834,18 +1869,18 @@ public function update_quiz_price($quizID) {
                 
                 $total_marks=0;
 
-                    foreach($total_question as $total_question_hwe)
+                foreach($total_question as $total_question_hwe)
+                {
+                    $get_questions_points= $wpdb->get_results("SELECT id,`weight` from ".$wpdb->prefix."aysquiz_questions where id='".$total_question_hwe."'",ARRAY_A);
+                    foreach($get_questions_points as $get_questions_points_hwe)
                     {
-                        $get_questions_points= $wpdb->get_results("SELECT id,`weight` from ".$wpdb->prefix."aysquiz_questions where id='".$total_question_hwe."'", ARRAY_A);
-                        foreach($get_questions_points as $get_questions_points_hwe)
-                        {
-                            $points =0;
-                            $points = $get_questions_points_hwe['weight'];
-                        }
-                    
-                        $total_marks = $total_marks + $points;
-                    
+                        $points =0;
+                        $points = $get_questions_points_hwe['weight'];
                     }
+                
+                    $total_marks = $total_marks + $points;
+                    
+                }
 
                     $total_minutes = $activeenddate - $activecreatedate;
 
@@ -5388,68 +5423,68 @@ public function citycountries() {
         }
         /////end contect us page////
 
-        //ho to play page////
-        public function how_to_play_page() {
+                   //ho to play page////
+                   public function how_to_play_page() {
 
-        global $wpdb;
-        $output = [];
-        $this->maintaincemode();
-        $this->db = $this->getDb();
-        $headers = $this->getallheaders();
-        $params = filter_input_array(INPUT_POST, $_POST);
-        $params = $_REQUEST;
-
-        $data=array();
-        $all_data=array();
-        
-        $result_list=$wpdb->get_results("SELECT * FROM static_page_contant ",ARRAY_A);
-        
-        
-        if(count($result_list) > 0)
-        {
-            foreach($result_list as $banner_data_hwe)
-            {
+                    global $wpdb;
+                    $output = [];
+                    $this->maintaincemode();
+                    $this->db = $this->getDb();
+                    $headers = $this->getallheaders();
+                    $params = filter_input_array(INPUT_POST, $_POST);
+                    $params = $_REQUEST;
             
-                $title= json_decode($banner_data_hwe['howtoplay_title'],true);
-                $content=json_decode($banner_data_hwe['howtoplay_content'],true);
-                foreach($title as $key => $title_hwe){
-
-                    $data['title']=$title_hwe;
-                    $data['content']=$content[$key];
-
-                    $all_data[]=$data;
-                }
-                
-            }
-
-            $output = array(
-                "status" => true,
-                "error_code" => "0",
-                "message" => "Banners list",
-                "data"=>$all_data
-            );
-        }
-        else
-        {
-            $output = array(
-                "status" => false,
-                "error_code" => "1106",
-                "message" => "No Banners list Found",
-                "data"=>$all_data
-            );
-        }
-    
+                    $data=array();
+                    $all_data=array();
+                   
+                    $result_list=$wpdb->get_results("SELECT * FROM static_page_contant ",ARRAY_A);
+                    
+                    
+                    if(count($result_list) > 0)
+                    {
+                        foreach($result_list as $banner_data_hwe)
+                        {
+                        
+                            $title= json_decode($banner_data_hwe['howtoplay_title'],true);
+                            $content=json_decode($banner_data_hwe['howtoplay_content'],true);
+                            foreach($title as $key => $title_hwe){
         
-        header('Access-Control-Allow-Headers: access-control-allow-origin, access-control-allow-methods, access-control-allow-headers, X-Requested-With, Content-Type, viewerTZOffset, deviceid, mobile, session, uat, appversion, ip, language, browser');
-        header('Content-type: application/json');
-        header('Access-Control-Allow-Origin: *');
-
-        echo json_encode($output);
-        die();
-    
-
-    }
-    /////end how to play page////
+                                $data['title']=$title_hwe;
+                                $data['content']=$content[$key];
+        
+                                $all_data[]=$data;
+                            }
+                         
+                        }
+            
+                        $output = array(
+                            "status" => true,
+                            "error_code" => "0",
+                            "message" => "Banners list",
+                            "data"=>$all_data
+                        );
+                    }
+                    else
+                    {
+                        $output = array(
+                            "status" => false,
+                            "error_code" => "1106",
+                            "message" => "No Banners list Found",
+                            "data"=>$all_data
+                        );
+                    }
+               
+                    
+                    header('Access-Control-Allow-Headers: access-control-allow-origin, access-control-allow-methods, access-control-allow-headers, X-Requested-With, Content-Type, viewerTZOffset, deviceid, mobile, session, uat, appversion, ip, language, browser');
+                    header('Content-type: application/json');
+                    header('Access-Control-Allow-Origin: *');
+            
+                    echo json_encode($output);
+                    die();
+              
+            
+                }
+                /////end how to play page////
 
     // add balance to user wallet api
     public function user_add_balance() {
@@ -5882,7 +5917,7 @@ public function citycountries() {
         
     
     
-        $select_transaction_data = $wpdb->get_results("SELECT amount,payment_method,transaction_type,`date` from ".$wpdb->prefix."mwb_wsfw_wallet_transaction where user_id='$user_id' order by id desc limit ".$start.",".$limit,ARRAY_A);
+        $select_transaction_data = $wpdb->get_results("SELECT * from ".$wpdb->prefix."mwb_wsfw_wallet_transaction where user_id='$user_id' order by id desc limit ".$start.",".$limit,ARRAY_A);
 
         
         $data = array();
